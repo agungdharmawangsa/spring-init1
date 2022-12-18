@@ -4,6 +4,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.validation.constraints.NotNull;
 
 import java.io.Serializable;
 
@@ -15,10 +16,12 @@ public class Product implements Serializable {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
+    @NotNull(message = "name is required")
     private String name;
 
     private String description;
 
+    @NotNull(message = "price is required")
     private double price;
 
     public Product(){

@@ -1,7 +1,13 @@
 package springtutorial1.example.springtutorial1.controllers;
 
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.Errors;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.*;
+import springtutorial1.example.springtutorial1.dto.responseData;
 import springtutorial1.example.springtutorial1.models.entity.Product;
 import springtutorial1.example.springtutorial1.services.productService;
 
@@ -23,22 +29,44 @@ public class productController {
     }
 
     @GetMapping("/{id}")
-    public Optional<Product> findByiD(@PathVariable("id") Long id){
+    public Optional<Product> findByID( @PathVariable("id") Long id){
         return productService.findById(id);
     }
 
     @PostMapping("/save")
-    public Object save(@RequestBody Product product){
-        Map<String, Object> response = new HashMap<String, Object>();
-        response.put("data", product);
-        try{
-            productService.save(product);
-            response.put("message", "successfully insert your data");
-            return response;
+    public ResponseEntity<responseData<Product>> save(@Valid @RequestBody Product product, Errors errors){
+
+        responseData<Product> responseData = new responseData<>();
+        if(errors.hasErrors()){
+            for(ObjectError error : errors.getAllErrors()){
+                responseData.getError_messages().add(error.getDefaultMessage());
+            }
+            responseData.setStatus(false);
+            responseData.setPayload(null);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseData);
         }
-        catch (Exception e){
-            response.put("error", e);
-            return response;
+        responseData.setStatus(true);
+        responseData.setPayload(productService.save(product));
+        return ResponseEntity.status(HttpStatus.OK).body(responseData);
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public void deleteByID(@PathVariable("id") Long id){ productService.removeById(id);}
+
+    @PutMapping("/update")
+    public ResponseEntity<responseData<Product>> update(@Valid @RequestBody Product product, Errors errors){
+
+        responseData<Product> responseData = new responseData<>();
+        if(errors.hasErrors()){
+            for(ObjectError error : errors.getAllErrors()){
+                responseData.getError_messages().add(error.getDefaultMessage());
+            }
+            responseData.setStatus(false);
+            responseData.setPayload(null);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseData);
         }
+        responseData.setStatus(true);
+        responseData.setPayload(productService.save(product));
+        return ResponseEntity.status(HttpStatus.OK).body(responseData);
     }
 }
