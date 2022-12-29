@@ -1,6 +1,7 @@
 package springtutorial1.example.springtutorial1.controllers;
 
 import jakarta.validation.Valid;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -8,56 +9,57 @@ import org.springframework.validation.Errors;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.*;
 import springtutorial1.example.springtutorial1.dto.responseData;
-import springtutorial1.example.springtutorial1.models.entity.Product;
+import springtutorial1.example.springtutorial1.dto.supplierData;
 import springtutorial1.example.springtutorial1.models.entity.Supplier;
-import springtutorial1.example.springtutorial1.services.productService;
+import springtutorial1.example.springtutorial1.services.supplierService;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/products")
-public class productController {
+@RequestMapping("/api/suppliers")
+public class supplierController {
 
     @Autowired
-    private productService productService;
+    private supplierService supplierService;
+
+    @Autowired
+    private ModelMapper modelMapper;
+
+    @PostMapping("/save")
+    public ResponseEntity<responseData<Supplier>> save(@Valid @RequestBody supplierData supplierData, Errors errors){
+
+        responseData<Supplier> responseData = new responseData<>();
+        if(errors.hasErrors()){
+            for(ObjectError error : errors.getAllErrors()){
+                responseData.getError_messages().add(error.getDefaultMessage());
+            }
+            responseData.setStatus(false);
+            responseData.setPayload(null);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseData);
+        }
+
+        Supplier supplier = modelMapper.map(supplierData, Supplier.class);
+
+        responseData.setStatus(true);
+        responseData.setPayload(supplierService.save(supplier));
+        return ResponseEntity.ok(responseData);
+    }
 
     @GetMapping("/all")
-    public List<Product> listAllProduct(){
-        return productService.findAll();
+    public List<Supplier> listAllSupplier(){
+        return supplierService.findAll();
     }
 
     @GetMapping("/{id}")
-    public Optional<Product> findByID( @PathVariable("id") Long id){
-        return productService.findById(id);
+    public Optional<Supplier> findByID(@PathVariable("id") Long id){
+        return supplierService.findById(id);
     }
-
-    @PostMapping("/save")
-    public ResponseEntity<responseData<Product>> save(@Valid @RequestBody Product product, Errors errors){
-
-        responseData<Product> responseData = new responseData<>();
-        if(errors.hasErrors()){
-            for(ObjectError error : errors.getAllErrors()){
-                responseData.getError_messages().add(error.getDefaultMessage());
-            }
-            responseData.setStatus(false);
-            responseData.setPayload(null);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseData);
-        }
-        responseData.setStatus(true);
-        responseData.setPayload(productService.save(product));
-        return ResponseEntity.status(HttpStatus.OK).body(responseData);
-    }
-
-    @DeleteMapping("/delete/{id}")
-    public void deleteByID(@PathVariable("id") Long id){ productService.removeById(id);}
 
     @PutMapping("/update")
-    public ResponseEntity<responseData<Product>> update(@Valid @RequestBody Product product, Errors errors){
+    public ResponseEntity<responseData<Supplier>> update(@Valid @RequestBody supplierData supplierData, Errors errors){
 
-        responseData<Product> responseData = new responseData<>();
+        responseData<Supplier> responseData = new responseData<>();
         if(errors.hasErrors()){
             for(ObjectError error : errors.getAllErrors()){
                 responseData.getError_messages().add(error.getDefaultMessage());
@@ -66,13 +68,12 @@ public class productController {
             responseData.setPayload(null);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseData);
         }
+
+        Supplier supplier = modelMapper.map(supplierData, Supplier.class);
+
         responseData.setStatus(true);
-        responseData.setPayload(productService.save(product));
-        return ResponseEntity.status(HttpStatus.OK).body(responseData);
+        responseData.setPayload(supplierService.save(supplier));
+        return ResponseEntity.ok(responseData);
     }
 
-    @PostMapping("/addSupplier/{id}")
-    public void addSupplier(@RequestBody Supplier supplier, @PathVariable("id") Long productId){
-        productService.addSupplier(supplier, productId);
-    }
 }
