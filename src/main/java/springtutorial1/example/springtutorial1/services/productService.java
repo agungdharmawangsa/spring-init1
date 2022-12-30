@@ -17,6 +17,9 @@ public class productService {
     @Autowired
     private productRepo productRepo;
 
+    @Autowired
+    private supplierService supplierService;
+
     public Product save(Product product){
         return productRepo.save(product);
     }
@@ -45,5 +48,14 @@ public class productService {
         Product product = product_exist.get();
         product.getSuppliers().add(supplier);
         save(product);
+    }
+
+    public List<Product> findBySupplier(Long supplierId){
+        Optional<Supplier> supplier_exist = supplierService.findById(supplierId);
+        if(supplier_exist.isEmpty()){
+            throw new RuntimeException("Supplier with ID : "+supplierId+" not found");
+        }
+        Supplier supplier = supplier_exist.get();
+        return productRepo.findProductBySupplier(supplier);
     }
 }

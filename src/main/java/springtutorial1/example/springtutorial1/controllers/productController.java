@@ -75,4 +75,9 @@ public class productController {
     public void addSupplier(@RequestBody Supplier supplier, @PathVariable("id") Long productId){
         productService.addSupplier(supplier, productId);
     }
+
+    @GetMapping("/search/supplier/{supplierId}")
+    public List<Product> getProductByCategory(@PathVariable("supplierId") Long supplierId){
+        return productService.findBySupplier(supplierId);
+    }
 }
